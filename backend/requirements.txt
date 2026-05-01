@@ -11,3 +11,5 @@ python-decouple==3.8
 Pillow==10.2.0
 stripe==7.14.0
 requests==2.31.0
+cloudinary==1.41.0
+django-cloudinary-storage==0.3.0
