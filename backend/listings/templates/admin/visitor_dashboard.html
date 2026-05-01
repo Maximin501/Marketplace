@@ -1,0 +1,72 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+<h1>📊 Tableau de Bord des Visiteurs</h1>
+
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px;">
+    <div style="background: #4CAF50; color: white; padding: 20px; border-radius: 10px;">
+        <h3>Visites Aujourd'hui</h3>
+        <h2>{{ today_stats.total_visits }}</h2>
+    </div>
+    
+    <div style="background: #2196F3; color: white; padding: 20px; border-radius: 10px;">
+        <h3>Visiteurs Uniques</h3>
+        <h2>{{ today_stats.unique_visitors }}</h2>
+    </div>
+    
+    <div style="background: #FF9800; color: white; padding: 20px; border-radius: 10px;">
+        <h3>Connectés</h3>
+        <h2>{{ today_stats.authenticated_visitors }}</h2>
+    </div>
+    
+    <div style="background: #9C27B0; color: white; padding: 20px; border-radius: 10px;">
+        <h3>En Ligne</h3>
+        <h2>{{ online_visitors }}</h2>
+    </div>
+</div>
+
+<h2>🌍 Visites par Pays</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Pays</th>
+            <th>Nombre de visites</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for country, count in countries.items %}
+        <tr>
+            <td>{{ country }}</td>
+            <td>{{ count }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>📄 Dernières Visites</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Utilisateur</th>
+            <th>IP</th>
+            <th>Localisation</th>
+            <th>URL</th>
+            <th>Date</th>
+            <th>Durée</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for visit in recent_visits %}
+        <tr>
+            <td>{{ visit.user.username|default:"Anonyme" }}</td>
+            <td>{{ visit.ip_address }}</td>
+            <td>{{ visit.location_display }}</td>
+            <td>{{ visit.url_visited|truncatechars:50 }}</td>
+            <td>{{ visit.visit_time|date:"d/m/Y H:i" }}</td>
+            <td>{{ visit.visit_duration }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
