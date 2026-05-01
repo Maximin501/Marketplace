@@ -170,19 +170,21 @@ USE_TZ = True
 # CORS (Cross-Origin Resource Sharing)
 # ============================================================
 
-# En développement, permettre toutes les origines
-# En production, utiliser la liste définie dans les variables d'environnement
-if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True
-else:
-    # Récupérer les origines autorisées depuis les variables d'environnement
-    cors_origins = os.environ.get(
-        'CORS_ALLOWED_ORIGINS',
-        'http://localhost:5173,http://127.0.0.1:5173'
-    )
-    CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',') if origin.strip()]
+# Forcer l'autorisation pour Netlify et localhost
+CORS_ALLOWED_ORIGINS = [
+    'https://marketplacemaximin.netlify.app',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
 
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept', 'accept-encoding', 'authorization', 'content-type',
+    'dnt', 'origin', 'user-agent', 'x-csrftoken', 'x-requested-with',
+]
 CORS_ALLOW_METHODS = [
     'DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT',
 ]
