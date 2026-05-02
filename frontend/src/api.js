@@ -56,10 +56,15 @@ api.interceptors.request.use(
 // FONCTIONS IMAGES
 // ============================================================
 export const getImageUrl = (imagePath) => {
-  if (!imagePath || imagePath === 'null' || imagePath === 'undefined') return null;
+  if (!imagePath || imagePath === 'null') return null;
+  
+  // Si c'est déjà une URL Cloudinary ou autre URL complète
   if (imagePath.startsWith('http')) return imagePath;
-  if (imagePath.startsWith('/')) return `${MEDIA_URL}${imagePath}`;
-  return `${MEDIA_URL}/media/${imagePath}`;
+  
+  // Si c'est une URL relative du backend
+  if (imagePath.startsWith('/')) return `https://marketplace-n63e.onrender.com${imagePath}`;
+  
+  return `https://marketplace-n63e.onrender.com/media/${imagePath}`;
 };
 
 // ============================================================
