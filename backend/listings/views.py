@@ -19,6 +19,29 @@ from .serializers import (
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+
+# ============================================================
+# FONCTION UTILITAIRE - Nettoyage URL Cloudinary
+# ============================================================
+def clean_cloudinary_url(url):
+    """Nettoie une URL Cloudinary pour éviter le double enveloppement"""
+    if not url:
+        return url
+    
+    # Si l'URL contient res.cloudinary.com en double
+    if url.count('res.cloudinary.com') > 1:
+        # Extraire la dernière partie après le dernier 'upload/'
+        parts = url.split('/upload/')
+        if len(parts) >= 2:
+            return f"https://res.cloudinary.com/dbf8mmbxp/image/upload/{parts[-1]}"
+    
+    # Si l'URL commence déjà par https://res.cloudinary.com et est valide
+    if url.startswith('https://res.cloudinary.com/') and url.count('res.cloudinary.com') == 1:
+        return url
+    
+    return url
+
+
 # ============ CATEGORIES ============
 @api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
@@ -66,7 +89,12 @@ def create_listing(request):
             status=status.HTTP_403_FORBIDDEN
         )
     
-    serializer = ListingSerializer(data=request.data)
+    # Nettoyer l'URL Cloudinary si elle est fournie
+    data = request.data.copy()
+    if 'image_url' in data and data['image_url']:
+        data['image_url'] = clean_cloudinary_url(data['image_url'])
+    
+    serializer = ListingSerializer(data=data)
     if serializer.is_valid():
         serializer.save(owner=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -85,7 +113,12 @@ def update_listing(request, id):
             status=status.HTTP_403_FORBIDDEN
         )
     
-    serializer = ListingSerializer(listing, data=request.data, partial=True)
+    # Nettoyer l'URL Cloudinary si elle est fournie
+    data = request.data.copy()
+    if 'image_url' in data and data['image_url']:
+        data['image_url'] = clean_cloudinary_url(data['image_url'])
+    
+    serializer = ListingSerializer(listing, data=data, partial=True)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data)
@@ -173,31 +206,27 @@ def create_payment(request, id):
     """Créer un paiement - Réservé aux acheteurs"""
     listing = get_object_or_404(Listing, id=id, is_active=True)
     
-    # Vérification 1: L'acheteur ne peut pas acheter son propre produit
     if listing.owner == request.user:
         return Response(
             {'error': 'Vous ne pouvez pas acheter votre propre produit'}, 
             status=status.HTTP_400_BAD_REQUEST
         )
     
-    # Vérification 2: L'utilisateur doit être acheteur
     if not hasattr(request.user, 'profile') or not request.user.profile.is_buyer:
         return Response(
             {'error': 'Seuls les acheteurs peuvent passer des commandes. Activez votre rôle acheteur dans votre profil.'}, 
             status=status.HTTP_403_FORBIDDEN
         )
     
-    # Créer la commande
     order = Order.objects.create(
         buyer=request.user,
         listing=listing,
         status='pending'
     )
     
-    # Simuler Stripe (si pas de clé Stripe valide)
     if settings.STRIPE_SECRET_KEY == 'sk_test_placeholder':
         return Response({
-            "url": f"http://localhost:5173/success?order_id={order.id}",
+            "url": f"https://marketplacemaximin.netlify.app/success?order_id={order.id}",
             "order_id": order.id,
             "demo": True
         })
@@ -222,8 +251,8 @@ def create_payment(request, id):
                 "listing_id": listing.id,
                 "buyer_id": request.user.id,
             },
-            success_url="http://localhost:5173/success?order_id={}".format(order.id),
-            cancel_url="http://localhost:5173/cancel",
+            success_url="https://marketplacemaximin.netlify.app/success?order_id={}".format(order.id),
+            cancel_url="https://marketplacemaximin.netlify.app/cancel",
         )
         
         order.stripe_session_id = session.id
