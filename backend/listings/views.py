@@ -28,14 +28,24 @@ def clean_cloudinary_url(url):
     if not url:
         return url
     
+    # Si c'est déjà une URL Unsplash ou autre URL directe
+    if 'unsplash.com' in url or 'images.unsplash.com' in url:
+        return url
+    
     # Si l'URL contient res.cloudinary.com en double
     if url.count('res.cloudinary.com') > 1:
-        # Extraire la dernière partie après le dernier 'upload/'
         parts = url.split('/upload/')
         if len(parts) >= 2:
-            return f"https://res.cloudinary.com/dbf8mmbxp/image/upload/{parts[-1]}"
+            # Garder uniquement la dernière partie après le dernier upload/
+            last_part = parts[-1]
+            # Si last_part contient encore une URL, extraire le chemin final
+            if 'res.cloudinary.com' in last_part:
+                sub_parts = last_part.split('/upload/')
+                if len(sub_parts) >= 2:
+                    last_part = sub_parts[-1]
+            return f"https://res.cloudinary.com/dbf8mmbxp/image/upload/{last_part}"
     
-    # Si l'URL commence déjà par https://res.cloudinary.com et est valide
+    # Si l'URL commence déjà correctement
     if url.startswith('https://res.cloudinary.com/') and url.count('res.cloudinary.com') == 1:
         return url
     
