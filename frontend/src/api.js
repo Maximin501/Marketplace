@@ -1,9 +1,9 @@
-import axios from 'axios';
+renvoie moi la version mis à jour de: import axios from 'axios';
 
 // ============================================================
 // CONFIGURATION CLOUDINARY
 // ============================================================
-const CLOUDINARY_CLOUD_NAME = 'dbf8mmbxp';
+const CLOUDINARY_CLOUD_NAME = 'dbf8mmbxp';  // ← Remplacez par VOTRE Cloud Name réel
 const CLOUDINARY_BASE_URL = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/`;
 
 // ============================================================
@@ -35,7 +35,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 60000,
+  timeout: 60000, // 60 secondes (Render peut être lent au démarrage)
 });
 
 // ============================================================
@@ -53,31 +53,18 @@ api.interceptors.request.use(
 );
 
 // ============================================================
-// FONCTIONS IMAGES (CORRIGÉ)
+// FONCTIONS IMAGES
 // ============================================================
 export const getImageUrl = (imagePath) => {
-  // Si vide ou null
-  if (!imagePath || imagePath === 'null' || imagePath === 'undefined') {
-    return null;
-  }
+  if (!imagePath || imagePath === 'null') return null;
   
-  // 1. Si c'est déjà une URL Cloudinary
-  if (imagePath.includes('res.cloudinary.com')) {
-    return imagePath;
-  }
+  // Si c'est déjà une URL Cloudinary ou autre URL complète
+  if (imagePath.startsWith('http')) return imagePath;
   
-  // 2. Si c'est une autre URL complète (http/https)
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-    return imagePath;
-  }
+  // Si c'est une URL relative du backend
+  if (imagePath.startsWith('/')) return `https://marketplace-n63e.onrender.com${imagePath}`;
   
-  // 3. Si c'est un chemin relatif du backend
-  if (imagePath.startsWith('/')) {
-    return `${MEDIA_URL}${imagePath}`;
-  }
-  
-  // 4. Fallback : ajouter /media/
-  return `${MEDIA_URL}/media/${imagePath}`;
+  return `https://marketplace-n63e.onrender.com/media/${imagePath}`;
 };
 
 // ============================================================
