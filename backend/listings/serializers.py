@@ -121,13 +121,28 @@ class ListingSerializer(serializers.ModelSerializer):
         read_only_fields = ["owner", "created_at", "updated_at"]
     
     def get_image_url(self, obj):
-    if obj.image:
+        """Nettoie l'URL pour éviter le double enveloppement Cloudinary"""
+        if not obj.image:
+            return None
+        
         url = obj.image.url
-        # Nettoyer l'URL si double Cloudinary
-        if url and url.count('res.cloudinary.com') > 1:
+        
+        # Détecter et corriger le double enveloppement
+        if url and 'https:/res.cloudinary.com' in url:
+            # Extraire la dernière partie valide
             parts = url.split('/upload/')
             if len(parts) >= 2:
-                return f"https://res.cloudinary.com/dbf8mmbxp/image/upload/{parts[-1]}"
+                # Prendre la dernière occurrence
+                last_part = parts[-1]
+                return f"https://res.cloudinary.com/dbf8mmbxp/image/upload/{last_part}"
+        
+        # Si l'URL est déjà propre
+        if url.startswith('https://res.cloudinary.com/') and url.count('res.cloudinary.com') == 1:
+            return url
+        
+        if url.startswith('http://') or url.startswith('https://'):
+            return url
+        
         return url
     return None
     
