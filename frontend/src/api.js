@@ -3,7 +3,7 @@ import axios from 'axios';
 // ============================================================
 // CONFIGURATION CLOUDINARY
 // ============================================================
-const CLOUDINARY_CLOUD_NAME = 'dmlxi5xrf';  // ← Remplacez par VOTRE Cloud Name réel
+const CLOUDINARY_CLOUD_NAME = 'dbf8mmbxp';
 const CLOUDINARY_BASE_URL = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/`;
 
 // ============================================================
@@ -35,7 +35,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 60000, // 60 secondes (Render peut être lent au démarrage)
+  timeout: 60000,
 });
 
 // ============================================================
@@ -56,9 +56,27 @@ api.interceptors.request.use(
 // FONCTIONS IMAGES
 // ============================================================
 export const getImageUrl = (imagePath) => {
-  if (!imagePath || imagePath === 'null' || imagePath === 'undefined') return null;
-  if (imagePath.startsWith('http')) return imagePath;
-  if (imagePath.startsWith('/')) return `${MEDIA_URL}${imagePath}`;
+  // Si vide ou null
+  if (!imagePath || imagePath === 'null' || imagePath === 'undefined') {
+    return null;
+  }
+  
+  // 1. Si c'est déjà une URL Cloudinary
+  if (imagePath.includes('res.cloudinary.com')) {
+    return imagePath;
+  }
+  
+  // 2. Si c'est une autre URL complète (http/https)
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  
+  // 3. Si c'est un chemin relatif du backend
+  if (imagePath.startsWith('/')) {
+    return `${MEDIA_URL}${imagePath}`;
+  }
+  
+  // 4. Fallback
   return `${MEDIA_URL}/media/${imagePath}`;
 };
 

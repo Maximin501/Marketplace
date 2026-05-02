@@ -14,10 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # CONFIGURATION DE BASE
 # ============================================================
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-e3s9bync1azp+^ge+l*dz5!2ex!5t7^7s2!&7ua#@7s8b0b1d5')
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
 ALLOWED_HOSTS = os.environ.get(
@@ -62,7 +59,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
-    # 'listings.middleware.VisitorTrackingMiddleware',  # Activer si GeoIP configuré
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -90,7 +86,6 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # ============================================================
 
 if DEBUG:
-    # SQLite en développement
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -98,7 +93,6 @@ if DEBUG:
         }
     }
 else:
-    # PostgreSQL en production (Render)
     database_url = os.environ.get('DATABASE_URL')
     if database_url:
         DATABASES = {
@@ -109,7 +103,6 @@ else:
             )
         }
     else:
-        # Fallback SQLite si pas de DATABASE_URL
         DATABASES = {
             'default': {
                 'ENGINE': 'django.db.backends.sqlite3',
@@ -170,7 +163,6 @@ USE_TZ = True
 # CORS (Cross-Origin Resource Sharing)
 # ============================================================
 
-# Forcer l'autorisation pour Netlify et localhost
 CORS_ALLOWED_ORIGINS = [
     'https://marketplacemaximin.netlify.app',
     'http://localhost:5173',
@@ -178,16 +170,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_METHODS = [
-    'DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT',
-]
-CORS_ALLOW_HEADERS = [
-    'accept', 'accept-encoding', 'authorization', 'content-type',
-    'dnt', 'origin', 'user-agent', 'x-csrftoken', 'x-requested-with',
-]
-CORS_ALLOW_METHODS = [
-    'DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT',
-]
+CORS_ALLOW_METHODS = ['DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT']
 CORS_ALLOW_HEADERS = [
     'accept', 'accept-encoding', 'authorization', 'content-type',
     'dnt', 'origin', 'user-agent', 'x-csrftoken', 'x-requested-with',
@@ -201,33 +184,27 @@ STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_placeholder')
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', 'pk_test_placeholder')
 
 # ============================================================
-# FICHIERS STATIQUES (CSS, JavaScript, Images)
+# FICHIERS STATIQUES
 # ============================================================
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Vérifier si le dossier static existe avant de l'ajouter
 static_dir = BASE_DIR / 'static'
-if static_dir.exists():
-    STATICFILES_DIRS = [static_dir]
-else:
-    STATICFILES_DIRS = []
+STATICFILES_DIRS = [static_dir] if static_dir.exists() else []
 
-# Compression et cache des fichiers statiques
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ============================================================
-# FICHIERS MÉDIAS (Uploads utilisateurs)
+# FICHIERS MÉDIAS (Cloudinary ou Local)
 # ============================================================
 
-# Vérifier si Cloudinary est configuré
-CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', '')
-CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '')
-CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '')
+# ✅ CORRECT
+CLOUDINARY_CLOUD_NAME = 'dbf8mmbxp'
+CLOUDINARY_API_KEY = '754296665639492'
+CLOUDINARY_API_SECRET = 'oWBIvEJkT6OjTfPzIQmvrCkdYiQ'
 
 if not DEBUG and CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
-    # Utiliser Cloudinary en production
     CLOUDINARY_STORAGE = {
         'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
         'API_KEY': CLOUDINARY_API_KEY,
@@ -236,33 +213,27 @@ if not DEBUG and CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     MEDIA_URL = f"https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/image/upload/"
 else:
-    # Utiliser le stockage local
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
 
 # ============================================================
-# SÉCURITÉ (Production uniquement)
+# SÉCURITÉ (Production)
 # ============================================================
 
 if not DEBUG:
-    # HTTPS
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    
-    # HSTS
-    SECURE_HSTS_SECONDS = 31536000  # 1 an
+    SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    
-    # Autres sécurités
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
 
 # ============================================================
-# CONFIGURATION DU CACHE (Optionnel)
+# CACHE
 # ============================================================
 
 CACHES = {
@@ -273,7 +244,7 @@ CACHES = {
 }
 
 # ============================================================
-# CONFIGURATION DES LOGS
+# LOGS
 # ============================================================
 
 LOGGING = {
@@ -305,7 +276,7 @@ LOGGING = {
 }
 
 # ============================================================
-# GÉOLOCALISATION (Optionnel)
+# GÉOLOCALISATION
 # ============================================================
 
 GEOIP_PATH = BASE_DIR / 'geoip'
@@ -317,7 +288,7 @@ GEOIP_PATH = BASE_DIR / 'geoip'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ============================================================
-# CONFIGURATION EMAIL (Optionnel - pour les notifications)
+# EMAIL
 # ============================================================
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # En dev
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

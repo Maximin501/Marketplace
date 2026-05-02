@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import Listing, Category, Order, Profile
 from django.contrib.auth.models import User
 
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
@@ -24,17 +25,25 @@ class ProfileSerializer(serializers.ModelSerializer):
     
     def get_avatar_url(self, obj):
         if obj.avatar:
-            return obj.avatar.url
+            return self._get_safe_url(obj.avatar.url)
         return None
     
     def get_cin_photo_url(self, obj):
         if obj.cin_photo:
-            return obj.cin_photo.url
+            return self._get_safe_url(obj.cin_photo.url)
         return None
+    
+    def _get_safe_url(self, url):
+        if not url:
+            return None
+        if url.count('res.cloudinary.com') > 1:
+            parts = url.split('/upload/')
+            if len(parts) > 1:
+                return f"https://res.cloudinary.com/dbf8mmbxp/image/upload/{parts[-1]}"
+        return url
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
-    """Sérializer pour la mise à jour du profil"""
     first_name = serializers.CharField(source='user.first_name', required=False)
     last_name = serializers.CharField(source='user.last_name', required=False)
     email = serializers.EmailField(source='user.email', required=False)
@@ -48,7 +57,6 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         ]
     
     def update(self, instance, validated_data):
-        # Mettre à jour les champs User
         user_data = validated_data.pop('user', {})
         user = instance.user
         
@@ -60,7 +68,6 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
             user.email = user_data['email']
         user.save()
         
-        # Mettre à jour les champs Profile
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
@@ -101,15 +108,31 @@ class ListingSerializer(serializers.ModelSerializer):
         model = Listing
         fields = [
             "id", "title", "price", "city", "description", 
-            "image", "image_url", "created_at", "updated_at",
+            "image", "image_url", "image_url_externe",
+            "created_at", "updated_at",
             "owner", "owner_name", "owner_full_name", "owner_profile",
             "category", "category_id", "is_active"
         ]
         read_only_fields = ["owner", "created_at", "updated_at"]
     
     def get_image_url(self, obj):
+        """Retourne la bonne URL d'image (externe prioritaire, puis upload)"""
+        # 1. Priorité à l'URL externe
+        if obj.image_url_externe:
+            return obj.image_url_externe
+        
+        # 2. Image uploadée
         if obj.image:
-            return obj.image.url
+            url = obj.image.url
+            
+            # Corriger le double enveloppement Cloudinary
+            if url and url.count('res.cloudinary.com') > 1:
+                parts = url.split('/upload/')
+                if len(parts) >= 2:
+                    return f"https://res.cloudinary.com/dbf8mmbxp/image/upload/{parts[-1]}"
+            
+            return url
+        
         return None
     
     def get_owner_full_name(self, obj):
@@ -151,20 +174,17 @@ class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
     confirm_password = serializers.CharField(write_only=True)
     
-    # Champs profil
     phone = serializers.CharField(required=False, allow_blank=True)
     address = serializers.CharField(required=False, allow_blank=True)
     is_seller = serializers.BooleanField(required=False, default=False)
     is_buyer = serializers.BooleanField(required=False, default=True)
     avatar = serializers.ImageField(required=False, allow_null=True)
     
-    # Champs CIN
     cin_number = serializers.CharField(required=False, allow_blank=True)
     cin_issue_date = serializers.DateField(required=False, allow_null=True)
     cin_issue_place = serializers.CharField(required=False, allow_blank=True)
     cin_photo = serializers.ImageField(required=False, allow_null=True)
     
-    # Champs vendeur
     seller_store_name = serializers.CharField(required=False, allow_blank=True)
     seller_description = serializers.CharField(required=False, allow_blank=True)
     
@@ -194,30 +214,21 @@ class RegisterSerializer(serializers.ModelSerializer):
         return data
     
     def create(self, validated_data):
-        # Extraire les champs du profil
         phone = validated_data.pop('phone', '')
         address = validated_data.pop('address', '')
         is_seller = validated_data.pop('is_seller', False)
         is_buyer = validated_data.pop('is_buyer', True)
         avatar = validated_data.pop('avatar', None)
-        
-        # Extraire les champs CIN
         cin_number = validated_data.pop('cin_number', '')
         cin_issue_date = validated_data.pop('cin_issue_date', None)
         cin_issue_place = validated_data.pop('cin_issue_place', '')
         cin_photo = validated_data.pop('cin_photo', None)
-        
-        # Extraire les champs vendeur
         seller_store_name = validated_data.pop('seller_store_name', '')
         seller_description = validated_data.pop('seller_description', '')
-        
-        # Supprimer confirm_password
         validated_data.pop('confirm_password')
         
-        # Créer l'utilisateur
         user = User.objects.create_user(**validated_data)
         
-        # Créer le profil
         Profile.objects.create(
             user=user,
             phone=phone,
