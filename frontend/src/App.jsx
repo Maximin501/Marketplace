@@ -498,15 +498,11 @@ function App() {
               <div className="col-md-4 col-lg-3 mb-4" key={product.id}>
                 <div className="card h-100 shadow-sm">
                   {/* Image du produit */}
-                  <img 
-                    src={product.image_url || "https://placehold.co/300x200?text=No+Image"} 
-                    className="card-img-top" 
-                    style={{ height: 200, objectFit: "cover" }} 
-                    alt={product.title}
-                    onError={(e) => {
-                      e.target.src = "https://placehold.co/300x200?text=No+Image";
-                    }}
-                  />
+                 <img 
+                      src={getImageUrl(product.image_url) || product.image || "https://placehold.co/300x200?text=No+Image"}
+                      alt={product.title}
+                      onError={(e) => { e.target.src = "https://placehold.co/300x200?text=No+Image"; }}
+                />
                   
                   {/* Contenu de la carte */}
                   <div className="card-body d-flex flex-column">
