@@ -86,7 +86,7 @@ class ListingAdmin(admin.ModelAdmin):
             'fields': ('category', 'owner')
         }),
         ('Image', {
-            'fields': ('image', 'image_preview_admin')
+            'fields': ('image', 'image_url_externe')
         }),
         ('Statut et Statistiques', {
             'fields': (
