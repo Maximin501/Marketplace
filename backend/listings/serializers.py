@@ -1,8 +1,6 @@
 from rest_framework import serializers
 from .models import Listing, Category, Order, Profile
 from django.contrib.auth.models import User
-from django.conf import settings
-import os
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -36,20 +34,16 @@ class ProfileSerializer(serializers.ModelSerializer):
         return None
     
     def _get_safe_url(self, url):
-        """Évite le double enveloppement Cloudinary"""
         if not url:
             return None
-        # Si l'URL contient déjà 'res.cloudinary.com' en double, extraire la vraie URL
-        if 'https:/res.cloudinary.com' in url and url.count('res.cloudinary.com') > 1:
-            # Extraire la dernière partie après le dernier 'upload/'
+        if url.count('res.cloudinary.com') > 1:
             parts = url.split('/upload/')
             if len(parts) > 1:
-                return f"https://res.cloudinary.com/{parts[0].split('res.cloudinary.com/')[-1]}/upload/{parts[-1]}"
+                return f"https://res.cloudinary.com/dbf8mmbxp/image/upload/{parts[-1]}"
         return url
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
-    """Sérializer pour la mise à jour du profil"""
     first_name = serializers.CharField(source='user.first_name', required=False)
     last_name = serializers.CharField(source='user.last_name', required=False)
     email = serializers.EmailField(source='user.email', required=False)
@@ -114,64 +108,37 @@ class ListingSerializer(serializers.ModelSerializer):
         model = Listing
         fields = [
             "id", "title", "price", "city", "description", 
-            "image", "image_url", "created_at", "updated_at",
+            "image", "image_url", "image_url_externe",
+            "created_at", "updated_at",
             "owner", "owner_name", "owner_full_name", "owner_profile",
             "category", "category_id", "is_active"
         ]
         read_only_fields = ["owner", "created_at", "updated_at"]
     
     def get_image_url(self, obj):
-        """Nettoie l'URL pour éviter le double enveloppement Cloudinary"""
-        if not obj.image:
-            return None
+        """Retourne la bonne URL d'image (externe prioritaire, puis upload)"""
+        # 1. Priorité à l'URL externe
+        if obj.image_url_externe:
+            return obj.image_url_externe
         
-        url = obj.image.url
-        
-        # Détecter et corriger le double enveloppement
-        if url and 'https:/res.cloudinary.com' in url:
-            # Extraire la dernière partie valide
-            parts = url.split('/upload/')
-            if len(parts) >= 2:
-                # Prendre la dernière occurrence
-                last_part = parts[-1]
-                return f"https://res.cloudinary.com/dbf8mmbxp/image/upload/{last_part}"
-        
-        # Si l'URL est déjà propre
-        if url.startswith('https://res.cloudinary.com/') and url.count('res.cloudinary.com') == 1:
+        # 2. Image uploadée
+        if obj.image:
+            url = obj.image.url
+            
+            # Corriger le double enveloppement Cloudinary
+            if url and url.count('res.cloudinary.com') > 1:
+                parts = url.split('/upload/')
+                if len(parts) >= 2:
+                    return f"https://res.cloudinary.com/dbf8mmbxp/image/upload/{parts[-1]}"
+            
             return url
         
-        if url.startswith('http://') or url.startswith('https://'):
-            return url
-        
-        return url
-    return None
+        return None
     
     def get_owner_full_name(self, obj):
         if obj.owner.first_name or obj.owner.last_name:
             return f"{obj.owner.first_name} {obj.owner.last_name}".strip()
         return obj.owner.username
-    
-    def _clean_url(self, url):
-        """Nettoie l'URL pour éviter le double enveloppement Cloudinary"""
-        if not url:
-            return None
-        
-        # Si l'URL est déjà propre, la retourner
-        if url.startswith('https://res.cloudinary.com/') and url.count('res.cloudinary.com') == 1:
-            return url
-        
-        # Si double enveloppement, extraire la vraie URL
-        if 'https:/res.cloudinary.com' in url:
-            # Trouver la dernière occurrence de l'URL Cloudinary
-            parts = url.split('https://res.cloudinary.com/')
-            if len(parts) > 1:
-                return f"https://res.cloudinary.com/{parts[-1]}"
-        
-        # Si c'est une URL relative normale
-        if url.startswith('/'):
-            return url
-        
-        return url
 
 
 class OrderSerializer(serializers.ModelSerializer):
