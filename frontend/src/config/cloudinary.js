@@ -1,7 +1,7 @@
 // Configuration Cloudinary
 // Remplacez par VOS identifiants
 
-export const CLOUDINARY_CLOUD_NAME = 'dxample123';  // ← Votre Cloud Name
+export const CLOUDINARY_CLOUD_NAME = 'dbf8mmbxp';  // ← Votre Cloud Name
 export const CLOUDINARY_UPLOAD_PRESET = 'marketplace_unsigned';  // ← Votre preset
 
 // URL de base pour les images
