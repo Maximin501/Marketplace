@@ -199,9 +199,9 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # FICHIERS MÉDIAS (Cloudinary ou Local)
 # ============================================================
 
-CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', '')
-CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '')
-CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '')
+CLOUDINARY_CLOUD_NAME = dbf8mmbxp
+CLOUDINARY_API_KEY = 754296665639492
+CLOUDINARY_API_SECRET = oWBIvEJkT6OjTfPzIQmvrCkdYiQ
 
 if not DEBUG and CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
     CLOUDINARY_STORAGE = {
