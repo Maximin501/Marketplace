@@ -245,6 +245,63 @@ class Listing(models.Model):
     
     @property
     def image_url(self):
+        """Retourne l'URL de l'image sans double enveloppement Cloudinary"""
+        if not self.image:
+            return None
+        
+        url = self.image.url
+        
+        # Corriger le double enveloppement Cloudinary
+        if url and url.count('res.cloudinary.com') > 1:
+            parts = url.split('/upload/')
+            if len(parts) >= 2:
+                # Récupérer le dernier segment valide
+                last_part = parts[-1]
+                # Si le dernier segment contient encore une URL complète
+                if last_part.startswith('https:/'):
+                    sub_parts = last_part.split('/upload/')
+                    if len(sub_parts) >= 2:
+                        last_part = sub_parts[-1]
+                return f"https://res.cloudinary.com/dbf8mmbxp/image/upload/{last_part}"
+        
+        # URL déjà propre
+        if url.startswith('http://') or url.startswith('https://'):
+            return url
+        
+        return url
+    
+    @property
+    def owner_full_name(self):
+        """Retourne le nom complet du propriétaire"""
+        if self.owner.first_name or self.owner.last_name:
+            return f"{self.owner.first_name} {self.owner.last_name}".strip()
+        return self.owner.username
+    
+    @property
+    def orders_count(self):
+        """Nombre de commandes pour cette annonce"""
+        return self.orders.count()
+    
+    def increment_views(self):
+        """Incrémente le compteur de vues"""
+        self.views_count += 1
+        self.save(update_fields=['views_count'])
+    class Meta:
+        verbose_name = "Annonce"
+        verbose_name_plural = "Annonces"
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['is_active']),
+            models.Index(fields=['category']),
+            models.Index(fields=['city']),
+            models.Index(fields=['price']),
+        ]
+
+    def __str__(self):
+        return self.title
+    
+    @property
+    def image_url(self):
         """Retourne l'URL de l'image"""
         if self.image:
             return self.image.url
