@@ -8,9 +8,11 @@ services:
     buildCommand: |
       pip install --upgrade pip
       pip install -r requirements.txt
+      rm -f db.sqlite3
       python manage.py makemigrations listings
       python manage.py migrate
       python manage.py collectstatic --noinput
+      echo "from django.contrib.auth.models import User; User.objects.filter(username='admin-maximin').exists() or User.objects.create_superuser('admin-maximin', 'admin@example.com', 'Marketplace2024!')" | python manage.py shell
     
     startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --timeout 120
     
