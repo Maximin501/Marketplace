@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "./api";
 import Footer from "./Footer";
+import api, { getImageUrl } from "./api";
 
 function App() {
   const [listings, setListings] = useState([]);
@@ -498,12 +499,16 @@ function App() {
               <div className="col-md-4 col-lg-3 mb-4" key={product.id}>
                 <div className="card h-100 shadow-sm">
                   {/* Image du produit */}
-                 <img 
-                      src={getImageUrl(product.image_url) || product.image || "https://placehold.co/300x200?text=No+Image"}
-                      alt={product.title}
-                      onError={(e) => { e.target.src = "https://placehold.co/300x200?text=No+Image"; }}
-                />
-                  
+                <img 
+                        src={getImageUrl(product.image_url) || getImageUrl(product.image) || "https://placehold.co/300x200?text=No+Image"} 
+                        className="card-img-top" 
+                        style={{ height: 200, objectFit: "cover" }} 
+                        alt={product.title}
+                        onError={(e) => {
+                       e.target.onerror = null;
+                       e.target.src = "https://placehold.co/300x200?text=No+Image";
+                       }}
+               />
                   {/* Contenu de la carte */}
                   <div className="card-body d-flex flex-column">
                     <h5 className="card-title">{product.title}</h5>
