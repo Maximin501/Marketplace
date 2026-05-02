@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import api from "./api";
-import Footer from "./Footer";
 import api, { getImageUrl } from "./api";
+import Footer from "./Footer";
 
 function App() {
   const [listings, setListings] = useState([]);
