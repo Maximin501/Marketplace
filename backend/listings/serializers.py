@@ -121,10 +121,15 @@ class ListingSerializer(serializers.ModelSerializer):
         read_only_fields = ["owner", "created_at", "updated_at"]
     
     def get_image_url(self, obj):
-        if obj.image:
-            url = obj.image.url
-            return self._clean_url(url)
-        return None
+    if obj.image:
+        url = obj.image.url
+        # Nettoyer l'URL si double Cloudinary
+        if url and url.count('res.cloudinary.com') > 1:
+            parts = url.split('/upload/')
+            if len(parts) >= 2:
+                return f"https://res.cloudinary.com/dbf8mmbxp/image/upload/{parts[-1]}"
+        return url
+    return None
     
     def get_owner_full_name(self, obj):
         if obj.owner.first_name or obj.owner.last_name:
