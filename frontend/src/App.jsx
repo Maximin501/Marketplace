@@ -500,15 +500,10 @@ function App() {
                 <div className="card h-100 shadow-sm">
                   {/* Image du produit */}
                 <img 
-                        src={getImageUrl(product.image_url) || getImageUrl(product.image) || "https://placehold.co/300x200?text=No+Image"} 
-                        className="card-img-top" 
-                        style={{ height: 200, objectFit: "cover" }} 
-                        alt={product.title}
-                        onError={(e) => {
-                       e.target.onerror = null;
-                       e.target.src = "https://placehold.co/300x200?text=No+Image";
-                       }}
-               />
+                   src={getImageUrl(product.image_url) || product.image || "https://placehold.co/300x200?text=No+Image"}
+                   alt={product.title}
+                   onError={(e) => { e.target.src = "https://placehold.co/300x200?text=No+Image"; }}
+                />
                   {/* Contenu de la carte */}
                   <div className="card-body d-flex flex-column">
                     <h5 className="card-title">{product.title}</h5>
