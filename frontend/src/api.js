@@ -3,7 +3,7 @@ import axios from 'axios';
 // ============================================================
 // CONFIGURATION CLOUDINARY
 // ============================================================
-const CLOUDINARY_CLOUD_NAME = 'dmlxi5xrf';  // ← Remplacez par VOTRE Cloud Name réel
+const CLOUDINARY_CLOUD_NAME = 'dbf8mmbxp';  // ← Remplacez par VOTRE Cloud Name réel
 const CLOUDINARY_BASE_URL = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/`;
 
 // ============================================================
